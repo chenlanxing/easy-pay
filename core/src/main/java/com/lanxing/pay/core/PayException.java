@@ -7,6 +7,8 @@ package com.lanxing.pay.core;
  */
 public class PayException extends RuntimeException {
 
+    private static final long serialVersionUID = 7292811118501255105L;
+
     public PayException(String message) {
         super(message);
     }
