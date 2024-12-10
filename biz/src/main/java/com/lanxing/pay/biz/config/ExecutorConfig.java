@@ -42,4 +42,18 @@ public class ExecutorConfig {
         executor.initialize();
         return executor;
     }
+
+    @Bean("callbackNotifyExecutor")
+    public Executor callbackNotifyExecutor() {
+        int corePoolSize = Runtime.getRuntime().availableProcessors();
+        MyExecutor executor = new MyExecutor();
+        executor.setCorePoolSize(corePoolSize);
+        executor.setMaxPoolSize(corePoolSize * 2);
+        executor.setQueueCapacity(1000);
+        executor.setKeepAliveSeconds(60);
+        executor.setThreadNamePrefix("callback-notify-exec-");
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.initialize();
+        return executor;
+    }
 }
