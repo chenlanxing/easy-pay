@@ -13,8 +13,8 @@
     <version>1.0</version>
     <packaging>pom</packaging>
     <modules>
-        <module>data</module>
         <module>core</module>
+        <module>data</module>
     </modules>
 
     <properties>
