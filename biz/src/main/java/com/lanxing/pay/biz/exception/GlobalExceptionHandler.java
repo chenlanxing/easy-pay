@@ -3,6 +3,7 @@ package com.lanxing.pay.biz.exception;
 import cn.hutool.core.exceptions.ExceptionUtil;
 import com.lanxing.pay.biz.constant.MdcConst;
 import com.lanxing.pay.biz.model.APIResult;
+import com.lanxing.pay.core.PayException;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,13 @@ public class GlobalExceptionHandler {
     public APIResult handleBizException(BizException e) {
         String msg = e.getMessage();
         log.warn("业务异常：{}", msg);
+        return APIResult.fail(msg);
+    }
+
+    @ExceptionHandler(PayException.class)
+    public APIResult handlePayException(PayException e) {
+        String msg = e.getMessage();
+        log.warn("支付异常：{}", msg);
         return APIResult.fail(msg);
     }
 

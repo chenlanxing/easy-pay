@@ -84,6 +84,7 @@ public class BizServiceImpl implements BizService {
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void closePay(String transactionNo) {
         log.info("关闭支付=>请求：{}", transactionNo);
@@ -109,6 +110,7 @@ public class BizServiceImpl implements BizService {
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public TransactionResp queryPay(String transactionNo) {
         log.info("查询支付=>请求：{}", transactionNo);
@@ -134,6 +136,7 @@ public class BizServiceImpl implements BizService {
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public String refund(RefundReq req) {
         log.info("退款=>请求：{}", req);
@@ -171,6 +174,7 @@ public class BizServiceImpl implements BizService {
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public RefundResp queryRefund(String refundNo) {
         log.info("查询退款=>请求：{}", refundNo);

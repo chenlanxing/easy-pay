@@ -53,6 +53,9 @@ public class TaskHandler {
     @Qualifier("callbackNotifyExecutor")
     private Executor callbackNotifyExecutor;
 
+    /**
+     * 处理未支付
+     */
     @Scheduled(cron = "0/30 * * * * ?")
     public void handleNotPay() {
         LocalDateTime now = LocalDateTime.now();
@@ -98,6 +101,9 @@ public class TaskHandler {
         }
     }
 
+    /**
+     * 处理退款中
+     */
     @Scheduled(cron = "0/30 * * * * ?")
     public void handleRefunding() {
         LocalDateTime now = LocalDateTime.now();

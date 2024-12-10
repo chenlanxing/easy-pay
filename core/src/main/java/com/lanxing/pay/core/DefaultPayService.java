@@ -1,5 +1,6 @@
 package com.lanxing.pay.core;
 
+import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.lanxing.pay.data.entity.EntranceEntity;
 import com.lanxing.pay.data.entity.RefundEntity;
@@ -32,9 +33,8 @@ public class DefaultPayService implements PayService {
     private PayService select(String entranceFlag) {
         EntranceEntity entrance = entranceService.getOne(Wrappers.<EntranceEntity>lambdaQuery()
                 .eq(EntranceEntity::getEntranceFlag, entranceFlag));
-        if (entrance == null || !applicationContext.containsBean(entrance.getImplBeanName())) {
-            throw new PayException("入口标识未知");
-        }
+        Assert.notNull(entrance, () -> new PayException("入口标识未知"));
+        Assert.isTrue(applicationContext.containsBean(entrance.getImplBeanName()), () -> new PayException("入口标识未知"));
         return applicationContext.getBean(entrance.getImplBeanName(), PayService.class);
     }
 
