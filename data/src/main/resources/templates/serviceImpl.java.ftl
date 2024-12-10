@@ -7,7 +7,7 @@ import ${superServiceImplClassPackage};
 import org.springframework.stereotype.Service;
 
 /**
- * ${table.comment!} DAO实现类
+ * ${table.comment!} Service实现类
  *
  * @author ${author}
  */

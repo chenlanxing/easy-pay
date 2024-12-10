@@ -4,7 +4,7 @@ import ${package.Entity}.${entity};
 import ${superServiceClassPackage};
 
 /**
- * ${table.comment!} DAO
+ * ${table.comment!} Service
  *
  * @author ${author}
  */
