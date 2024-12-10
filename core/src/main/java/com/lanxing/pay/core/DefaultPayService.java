@@ -39,7 +39,7 @@ public class DefaultPayService implements PayService {
     }
 
     @Override
-    public String prepay(TransactionEntity transaction) {
+    public Object prepay(TransactionEntity transaction) {
         return select(transaction.getEntranceFlag()).prepay(transaction);
     }
 

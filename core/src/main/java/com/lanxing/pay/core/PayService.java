@@ -17,7 +17,7 @@ public interface PayService {
      * @param transaction .
      * @return .
      */
-    String prepay(TransactionEntity transaction);
+    Object prepay(TransactionEntity transaction);
 
     /**
      * 关闭支付

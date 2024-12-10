@@ -1,5 +1,7 @@
 package com.lanxing.pay.biz.exception;
 
+import cn.hutool.core.util.StrUtil;
+
 /**
  * 业务异常
  *
@@ -11,6 +13,10 @@ public class BizException extends RuntimeException {
 
     public BizException(String message) {
         super(message);
+    }
+
+    public BizException(String message, Object... params) {
+        super(StrUtil.format(message, params));
     }
 
     public BizException(String message, Throwable cause) {
