@@ -14,7 +14,6 @@ import com.lanxing.pay.biz.model.resp.TransactionResp;
 import com.lanxing.pay.biz.service.BizService;
 import com.lanxing.pay.biz.util.IdUtil;
 import com.lanxing.pay.core.PayService;
-import com.lanxing.pay.data.constant.CallbackStatus;
 import com.lanxing.pay.data.constant.RefundStatus;
 import com.lanxing.pay.data.constant.TransactionStatus;
 import com.lanxing.pay.data.entity.RefundEntity;
@@ -73,8 +72,7 @@ public class BizServiceImpl implements BizService {
             String transactionNo = IdUtil.generate("100");
             TransactionEntity transaction = BeanUtil.copyProperties(req, TransactionEntity.class)
                     .setTransactionNo(transactionNo)
-                    .setStatus(TransactionStatus.NOT_PAY)
-                    .setBizCallbackStatus(CallbackStatus.NOT_EXECUTE);
+                    .setStatus(TransactionStatus.NOT_PAY);
             transactionService.save(transaction);
             log.info("预支付=>保存交易：{}", transaction);
 
@@ -161,8 +159,7 @@ public class BizServiceImpl implements BizService {
             String refundNo = IdUtil.generate("200");
             RefundEntity refund = BeanUtil.copyProperties(req, RefundEntity.class)
                     .setRefundNo(refundNo)
-                    .setStatus(RefundStatus.REFUNDING)
-                    .setBizCallbackStatus(CallbackStatus.NOT_EXECUTE);
+                    .setStatus(RefundStatus.REFUNDING);
             refundService.save(refund);
             log.info("退款=>保存退款：{}", refund);
 
@@ -187,7 +184,6 @@ public class BizServiceImpl implements BizService {
             Assert.notNull(refund, () -> new BizException("退款不存在"));
             TransactionEntity transaction = transactionService.getOne(Wrappers.<TransactionEntity>lambdaQuery()
                     .eq(TransactionEntity::getTransactionNo, refund.getTransactionNo()));
-            Assert.notNull(transaction, () -> new BizException("交易不存在"));
 
             if (RefundStatus.REFUNDING.equals(refund.getStatus()) && payService.queryRefund(transaction, refund)) {
                 refundService.updateById(refund);

@@ -91,11 +91,6 @@ public class RefundEntity {
      */
     private String bizCallbackUrl;
 
-    /**
-     * not-execute, success, fail
-     */
-    private String bizCallbackStatus;
-
     public static final String ID = "id";
 
     public static final String TRANSACTION_NO = "transaction_no";

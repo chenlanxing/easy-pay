@@ -106,11 +106,6 @@ public class TransactionEntity {
      */
     private String bizCallbackUrl;
 
-    /**
-     * not-execute, success, fail
-     */
-    private String bizCallbackStatus;
-
     public static final String ID = "id";
 
     public static final String ENTRANCE_FLAG = "entrance_flag";

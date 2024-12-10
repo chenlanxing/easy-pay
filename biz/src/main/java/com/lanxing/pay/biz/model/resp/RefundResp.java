@@ -3,7 +3,6 @@ package com.lanxing.pay.biz.model.resp;
 import cn.hutool.core.date.DatePattern;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -72,11 +71,4 @@ public class RefundResp {
      * 业务附加信息
      */
     private String bizAttach;
-
-    /**
-     * 业务回调地址
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    private String bizCallbackUrl;
 }
