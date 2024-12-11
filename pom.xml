@@ -26,6 +26,7 @@
         <hutool.version>5.8.22</hutool.version>
         <fastjson.version>2.0.52</fastjson.version>
         <freemarker.version>2.3.32</freemarker.version>
+        <wechatpay.version>0.2.15</wechatpay.version>
     </properties>
 
     <dependencies>
@@ -94,6 +95,11 @@
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
             <version>${freemarker.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.wechatpay-apiv3</groupId>
+            <artifactId>wechatpay-java</artifactId>
+            <version>${wechatpay.version}</version>
         </dependency>
     </dependencies>
 </project>
