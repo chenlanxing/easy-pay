@@ -9,11 +9,13 @@ import cn.hutool.core.util.StrUtil;
  */
 public class NotifyUrl {
 
-    public static String getPayNotifyUrl(String domain, String entranceFlag) {
-        return StrUtil.format("{}/callback/payNotify/{}", domain, entranceFlag);
+    private static final String DOMAIN = System.getenv("domain");
+
+    public static String getPayNotifyUrl(String entranceFlag) {
+        return StrUtil.format("{}/callback/payNotify/{}", DOMAIN, entranceFlag);
     }
 
-    public static String getRefundNotifyUrl(String domain, String entranceFlag) {
-        return StrUtil.format("{}/callback/refundNotify/{}", domain, entranceFlag);
+    public static String getRefundNotifyUrl(String entranceFlag) {
+        return StrUtil.format("{}/callback/refundNotify/{}", DOMAIN, entranceFlag);
     }
 }

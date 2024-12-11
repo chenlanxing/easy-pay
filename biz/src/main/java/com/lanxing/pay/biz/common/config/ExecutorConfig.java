@@ -1,6 +1,6 @@
 package com.lanxing.pay.biz.common.config;
 
-import com.lanxing.pay.biz.model.MyExecutor;
+import com.lanxing.pay.biz.common.model.MyExecutor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

@@ -1,4 +1,4 @@
-package com.lanxing.pay.biz.model;
+package com.lanxing.pay.biz.common.model;
 
 import cn.hutool.core.util.RandomUtil;
 import com.lanxing.pay.biz.common.constant.MdcConst;
