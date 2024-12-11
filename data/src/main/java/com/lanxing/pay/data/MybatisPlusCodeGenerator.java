@@ -26,7 +26,7 @@ public class MybatisPlusCodeGenerator {
         String outputDir = "data/src/main/java";
         String author = "chenlanxing";
         String module = "com.lanxing.pay.data";
-        List<String> tables = List.of("entrance", "transaction", "refund");
+        List<String> tables = List.of("wechat_config");
         generateCode(url, username, password, outputDir, author, module, tables);
     }
 
