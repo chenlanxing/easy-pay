@@ -1,6 +1,5 @@
 package com.lanxing.pay.core.wechat;
 
-import com.lanxing.pay.core.NotifyUrl;
 import com.lanxing.pay.core.PayException;
 import com.lanxing.pay.data.entity.TransactionEntity;
 import com.lanxing.pay.data.entity.WechatConfigEntity;
@@ -17,8 +16,6 @@ import com.wechat.pay.java.service.payments.model.Transaction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
 
 /**
  * 直连H5支付
@@ -37,21 +34,13 @@ public class DirectH5PayService extends DirectWechatPayService {
     @Override
     public Object prepay(TransactionEntity transaction) {
         WechatConfigEntity wechatConfig = getWechatConfig(transaction.getEntranceFlag());
+        Amount amount = getAmount(transaction, Amount.class);
         H5Info h5Info = new H5Info();
         h5Info.setType("Wap");
         SceneInfo sceneInfo = new SceneInfo();
         sceneInfo.setPayerClientIp(transaction.getUserIp());
         sceneInfo.setH5Info(h5Info);
-        Amount amount = new Amount();
-        amount.setTotal(transaction.getAmount().multiply(BigDecimal.valueOf(100)).intValue());
-        amount.setCurrency("CNY");
-        PrepayRequest request = new PrepayRequest();
-        request.setMchid(wechatConfig.getMchId());
-        request.setAppid(wechatConfig.getAppId());
-        request.setOutTradeNo(transaction.getTransactionNo());
-        request.setDescription(transaction.getDescription());
-        request.setTimeExpire(transaction.getExpireTime().format(FORMATTER));
-        request.setNotifyUrl(NotifyUrl.getPayNotifyUrl(transaction.getEntranceFlag()));
+        PrepayRequest request = getPrepayRequest(transaction, wechatConfig, PrepayRequest.class);
         request.setAmount(amount);
         request.setSceneInfo(sceneInfo);
         H5Service h5Service = new H5Service.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();

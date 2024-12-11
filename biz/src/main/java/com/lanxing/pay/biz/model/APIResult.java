@@ -1,7 +1,5 @@
 package com.lanxing.pay.biz.model;
 
-import com.alibaba.fastjson.annotation.JSONField;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -34,23 +32,5 @@ public class APIResult {
 
     public static APIResult error() {
         return new APIResult().setCode(-1).setMsg("发生错误，已上报开发者").setData(null);
-    }
-
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public boolean isSuccess() {
-        return code == 1;
-    }
-
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public boolean isFail() {
-        return code == 0;
-    }
-
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public boolean isError() {
-        return code == -1;
     }
 }

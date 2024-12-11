@@ -73,3 +73,13 @@ CREATE TABLE `wechat_config`
     PRIMARY KEY (`id`),
     UNIQUE KEY (`entrance_flag`)
 ) COMMENT = '微信配置';
+
+CREATE TABLE `wechat_user`
+(
+    `id`      BIGINT      NOT NULL AUTO_INCREMENT COMMENT 'ID',
+    `user_id` VARCHAR(32) NULL COMMENT '用户ID',
+    `app_id`  VARCHAR(64) NOT NULL COMMENT '应用ID',
+    `open_id` VARCHAR(64) NOT NULL COMMENT 'OpenID',
+    PRIMARY KEY (`id`),
+    KEY (`user_id`)
+) COMMENT = '微信用户';

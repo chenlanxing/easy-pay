@@ -1,30 +1,28 @@
 package com.lanxing.pay.core.wechat;
 
-import com.alibaba.fastjson.JSON;
 import com.lanxing.pay.core.PayException;
 import com.lanxing.pay.data.entity.TransactionEntity;
 import com.lanxing.pay.data.entity.WechatConfigEntity;
 import com.lanxing.pay.data.service.WechatConfigService;
-import com.wechat.pay.java.core.util.GsonUtil;
-import com.wechat.pay.java.service.payments.app.AppServiceExtension;
-import com.wechat.pay.java.service.payments.app.model.Amount;
-import com.wechat.pay.java.service.payments.app.model.CloseOrderRequest;
-import com.wechat.pay.java.service.payments.app.model.PrepayRequest;
-import com.wechat.pay.java.service.payments.app.model.PrepayWithRequestPaymentResponse;
-import com.wechat.pay.java.service.payments.app.model.QueryOrderByOutTradeNoRequest;
 import com.wechat.pay.java.service.payments.model.Transaction;
+import com.wechat.pay.java.service.payments.nativepay.NativePayService;
+import com.wechat.pay.java.service.payments.nativepay.model.Amount;
+import com.wechat.pay.java.service.payments.nativepay.model.CloseOrderRequest;
+import com.wechat.pay.java.service.payments.nativepay.model.PrepayRequest;
+import com.wechat.pay.java.service.payments.nativepay.model.PrepayResponse;
+import com.wechat.pay.java.service.payments.nativepay.model.QueryOrderByOutTradeNoRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * 直连APP支付
+ * 直连Native支付
  *
  * @author chenlanxing
  */
 @Slf4j
-@Service("wechatDirectApp")
-public class DirectAppPayService extends DirectWechatPayService {
+@Service("wechatDirectNative")
+public class DirectNativePayService extends DirectWechatPayService {
 
     @Autowired
     public void setWechatConfigService(WechatConfigService wechatConfigService) {
@@ -37,14 +35,14 @@ public class DirectAppPayService extends DirectWechatPayService {
         Amount amount = getAmount(transaction, Amount.class);
         PrepayRequest request = getPrepayRequest(transaction, wechatConfig, PrepayRequest.class);
         request.setAmount(amount);
-        AppServiceExtension appService = new AppServiceExtension.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
-        PrepayWithRequestPaymentResponse response;
+        NativePayService nativePayService = new NativePayService.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
+        PrepayResponse response;
         try {
-             response = appService.prepayWithRequestPayment(request);
+            response = nativePayService.prepay(request);
         } catch (Exception e) {
             throw new PayException("关闭支付失败", e);
         }
-        return JSON.parseObject(GsonUtil.toJson(response));
+        return response.getCodeUrl();
     }
 
     @Override
@@ -53,9 +51,9 @@ public class DirectAppPayService extends DirectWechatPayService {
         CloseOrderRequest request = new CloseOrderRequest();
         request.setMchid(wechatConfig.getMchId());
         request.setOutTradeNo(transaction.getTransactionNo());
-        AppServiceExtension appService = new AppServiceExtension.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
+        NativePayService nativePayService = new NativePayService.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
         try {
-            appService.closeOrder(request);
+            nativePayService.closeOrder(request);
         } catch (Exception e) {
             throw new PayException("关闭支付失败", e);
         }
@@ -67,10 +65,10 @@ public class DirectAppPayService extends DirectWechatPayService {
         QueryOrderByOutTradeNoRequest request = new QueryOrderByOutTradeNoRequest();
         request.setMchid(wechatConfig.getMchId());
         request.setOutTradeNo(transaction.getTransactionNo());
-        AppServiceExtension appService = new AppServiceExtension.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
+        NativePayService nativePayService = new NativePayService.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
         Transaction transactionResult;
         try {
-            transactionResult = appService.queryOrderByOutTradeNo(request);
+            transactionResult = nativePayService.queryOrderByOutTradeNo(request);
         } catch (Exception e) {
             throw new PayException("查询支付失败", e);
         }
