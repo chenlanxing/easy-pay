@@ -20,6 +20,7 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -53,11 +54,17 @@ public class TaskHandler {
     @Qualifier("callbackNotifyExecutor")
     private Executor callbackNotifyExecutor;
 
+    @Value("${scheduled.enable}")
+    private boolean scheduled;
+
     /**
      * 处理未支付
      */
     @Scheduled(cron = "0/30 * * * * ?")
     public void handleNotPay() {
+        if (!scheduled) {
+            return;
+        }
         LocalDateTime now = LocalDateTime.now();
         List<TransactionEntity> transactions = transactionService.list(Wrappers.<TransactionEntity>lambdaQuery()
                 .eq(TransactionEntity::getStatus, TransactionStatus.NOT_PAY)
@@ -106,6 +113,9 @@ public class TaskHandler {
      */
     @Scheduled(cron = "0/30 * * * * ?")
     public void handleRefunding() {
+        if (!scheduled) {
+            return;
+        }
         LocalDateTime now = LocalDateTime.now();
         List<RefundEntity> refunds = refundService.list(Wrappers.<RefundEntity>lambdaQuery()
                 .eq(RefundEntity::getStatus, RefundStatus.REFUNDING)

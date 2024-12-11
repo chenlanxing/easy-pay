@@ -13,6 +13,7 @@
     <version>1.0</version>
     <packaging>pom</packaging>
     <modules>
+        <module>app</module>
         <module>biz</module>
         <module>core</module>
         <module>data</module>
