@@ -21,6 +21,7 @@ import com.wechat.pay.java.service.refund.model.CreateRequest;
 import com.wechat.pay.java.service.refund.model.Refund;
 import com.wechat.pay.java.service.refund.model.RefundNotification;
 import com.wechat.pay.java.service.refund.model.Status;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
@@ -32,6 +33,7 @@ import java.time.format.DateTimeFormatter;
  *
  * @author chenlanxing
  */
+@Slf4j
 public abstract class WechatPayService implements PayService {
 
     protected static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(DatePattern.UTC_WITH_XXX_OFFSET_PATTERN);
@@ -64,6 +66,7 @@ public abstract class WechatPayService implements PayService {
             RefundService refundService = new RefundService.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
             refundService.create(request);
         } catch (Exception e) {
+            log.warn("退款失败：{}", e.getMessage(), e);
             throw new PayException("退款失败", e);
         }
     }
@@ -85,13 +88,8 @@ public abstract class WechatPayService implements PayService {
                 .body(ServletUtil.getBody(request))
                 .build();
 
-        RefundNotification refundNotification;
-        try {
-            NotificationParser notificationParser = new NotificationParser(WechatPayFactory.getConfig(wechatConfig));
-            refundNotification = notificationParser.parse(requestParam, RefundNotification.class);
-        } catch (Exception e) {
-            throw new PayException("解析退款通知失败", e);
-        }
+        NotificationParser notificationParser = new NotificationParser(WechatPayFactory.getConfig(wechatConfig));
+        RefundNotification refundNotification = notificationParser.parse(requestParam, RefundNotification.class);
 
         String status = RefundStatus.REFUNDING;
         LocalDateTime finishTime = null;
