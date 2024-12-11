@@ -18,6 +18,7 @@ import com.wechat.pay.java.core.notification.RequestParam;
 import com.wechat.pay.java.service.refund.RefundService;
 import com.wechat.pay.java.service.refund.model.AmountReq;
 import com.wechat.pay.java.service.refund.model.CreateRequest;
+import com.wechat.pay.java.service.refund.model.QueryByOutRefundNoRequest;
 import com.wechat.pay.java.service.refund.model.Refund;
 import com.wechat.pay.java.service.refund.model.RefundNotification;
 import com.wechat.pay.java.service.refund.model.Status;
@@ -62,17 +63,38 @@ public abstract class WechatPayService implements PayService {
         request.setNotifyUrl(NotifyUrl.getRefundNotifyUrl(transaction.getEntranceFlag()));
         request.setAmount(amountReq);
 
+        RefundService refundService = new RefundService.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
         try {
-            RefundService refundService = new RefundService.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
             refundService.create(request);
         } catch (Exception e) {
-            log.warn("退款失败：{}", e.getMessage(), e);
             throw new PayException("退款失败", e);
         }
     }
 
     @Override
     public boolean queryRefund(TransactionEntity transaction, RefundEntity refund) {
+        WechatConfigEntity wechatConfig = getWechatConfig(transaction.getEntranceFlag());
+
+        QueryByOutRefundNoRequest request = new QueryByOutRefundNoRequest();
+        request.setSubMchid(wechatConfig.getSubMchId());
+        request.setOutRefundNo(refund.getRefundNo());
+
+        RefundService refundService = new RefundService.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
+        Refund refundResult;
+        try {
+            refundResult = refundService.queryByOutRefundNo(request);
+        } catch (Exception e) {
+            throw new PayException("查询退款失败", e);
+        }
+        refund.setOutRefundNo(refundResult.getRefundId());
+        if (Status.SUCCESS == refundResult.getStatus()) {
+            refund.setStatus(RefundStatus.REFUNDED);
+            refund.setFinishTime(LocalDateTime.parse(refundResult.getSuccessTime(), FORMATTER));
+            return true;
+        } else if (Status.PROCESSING != refundResult.getStatus()) {
+            refund.setStatus(RefundStatus.REFUND_FAIL);
+            return true;
+        }
         return false;
     }
 
@@ -89,7 +111,12 @@ public abstract class WechatPayService implements PayService {
                 .build();
 
         NotificationParser notificationParser = new NotificationParser(WechatPayFactory.getConfig(wechatConfig));
-        RefundNotification refundNotification = notificationParser.parse(requestParam, RefundNotification.class);
+        RefundNotification refundNotification;
+        try {
+            refundNotification = notificationParser.parse(requestParam, RefundNotification.class);
+        } catch (Exception e) {
+            throw new PayException("解析退款通知失败", e);
+        }
 
         String status = RefundStatus.REFUNDING;
         LocalDateTime finishTime = null;

@@ -70,7 +70,6 @@ public class TaskHandler {
                 .eq(TransactionEntity::getStatus, TransactionStatus.NOT_PAY)
                 .gt(TransactionEntity::getCreateTime, now.minusHours(2)));
         log.info("处理未支付的交易=>数量：{}", transactions.size());
-
         transactions.forEach(transaction -> {
             try {
                 handleNotPay(transaction);
@@ -81,7 +80,6 @@ public class TaskHandler {
     }
 
     private void handleNotPay(TransactionEntity transaction) {
-        log.info("处理未支付的交易=>交易：{}", transaction);
         String lockKey = StrUtil.format(RedisLockConst.TRANSACTION_LOCK, transaction.getTransactionNo());
         RLock lock = redissonClient.getLock(lockKey);
         if (!lock.tryLock()) {
@@ -92,17 +90,12 @@ public class TaskHandler {
                 return;
             }
             transactionService.updateById(transaction);
-            log.info("处理未支付的交易=>更新交易：{}", transaction);
-
-            if (StrUtil.isEmpty(transaction.getBizCallbackUrl())) {
-                return;
+            if (StrUtil.isNotEmpty(transaction.getBizCallbackUrl())) {
+                CompletableFuture.runAsync(
+                        () -> HttpUtil.post(transaction.getBizCallbackUrl(), JSON.toJSONString(BeanUtil.copyProperties(transaction, TransactionResp.class))),
+                        callbackNotifyExecutor
+                );
             }
-
-            CompletableFuture.runAsync(() -> {
-                TransactionResp resp = BeanUtil.copyProperties(transaction, TransactionResp.class);
-                String result = HttpUtil.post(transaction.getBizCallbackUrl(), JSON.toJSONString(resp));
-                log.info("处理未支付的交易=>回调通知业务结果：{}", result);
-            }, callbackNotifyExecutor);
         } finally {
             lock.unlock();
         }
@@ -121,7 +114,6 @@ public class TaskHandler {
                 .eq(RefundEntity::getStatus, RefundStatus.REFUNDING)
                 .gt(RefundEntity::getCreateTime, now.minusHours(2)));
         log.info("处理退款中的交易=>数量：{}", refunds.size());
-
         refunds.forEach(refund -> {
             try {
                 handleRefunding(refund);
@@ -132,7 +124,6 @@ public class TaskHandler {
     }
 
     private void handleRefunding(RefundEntity refund) {
-        log.info("处理退款中的交易=>退款：{}", refund);
         String lockKey = StrUtil.format(RedisLockConst.REFUND_LOCK, refund.getRefundNo());
         RLock lock = redissonClient.getLock(lockKey);
         if (!lock.tryLock()) {
@@ -145,17 +136,12 @@ public class TaskHandler {
                 return;
             }
             refundService.updateById(refund);
-            log.info("处理退款中的交易=>更新退款：{}", refund);
-
-            if (StrUtil.isEmpty(refund.getBizCallbackUrl())) {
-                return;
+            if (StrUtil.isNotEmpty(refund.getBizCallbackUrl())) {
+                CompletableFuture.runAsync(
+                        () -> HttpUtil.post(refund.getBizCallbackUrl(), JSON.toJSONString(BeanUtil.copyProperties(refund, RefundResp.class))),
+                        callbackNotifyExecutor
+                );
             }
-
-            CompletableFuture.runAsync(() -> {
-                RefundResp resp = BeanUtil.copyProperties(refund, RefundResp.class);
-                String result = HttpUtil.post(refund.getBizCallbackUrl(), JSON.toJSONString(resp));
-                log.info("处理退款中的交易=>回调通知业务结果：{}", result);
-            }, callbackNotifyExecutor);
         } finally {
             lock.unlock();
         }

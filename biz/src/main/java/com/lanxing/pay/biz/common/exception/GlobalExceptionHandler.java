@@ -55,7 +55,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PayException.class)
     public APIResult handlePayException(PayException e) {
         String msg = e.getMessage();
-        log.warn("支付异常：{}", msg);
+        log.warn("支付异常：{}", msg, e);
         return APIResult.fail(msg);
     }
 

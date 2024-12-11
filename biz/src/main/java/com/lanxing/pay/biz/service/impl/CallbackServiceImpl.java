@@ -63,15 +63,12 @@ public class CallbackServiceImpl implements CallbackService {
 
     @Override
     public String payNotify(String entranceFlag, HttpServletRequest request) {
-        log.info("支付通知：{}", entranceFlag);
         EntranceEntity entrance = entranceService.getOne(Wrappers.<EntranceEntity>lambdaQuery()
                 .eq(EntranceEntity::getEntranceFlag, entranceFlag));
         Assert.notNull(entrance, () -> new BizException("入口标识未知"));
 
         CompletableFuture.runAsync(() -> {
             TransactionEntity parse = payService.parsePayNotify(request, entranceFlag);
-            log.info("解析支付通知：{}", parse);
-
             String lockKey = StrUtil.format(RedisLockConst.TRANSACTION_LOCK, parse.getTransactionNo());
             RLock lock = redissonClient.getLock(lockKey);
             if (!lock.tryLock()) {
@@ -84,36 +81,27 @@ public class CallbackServiceImpl implements CallbackService {
                         .setFinishTime(parse.getFinishTime())
                         .setOutTransactionNo(parse.getOutTransactionNo());
                 transactionService.updateById(transaction);
-                log.info("交易已更新：{}", transaction);
-
-                if (StrUtil.isEmpty(transaction.getBizCallbackUrl())) {
-                    return;
+                if (StrUtil.isNotEmpty(transaction.getBizCallbackUrl())) {
+                    CompletableFuture.runAsync(
+                            () -> HttpUtil.post(transaction.getBizCallbackUrl(), JSON.toJSONString(BeanUtil.copyProperties(transaction, TransactionResp.class))),
+                            callbackNotifyExecutor
+                    );
                 }
-
-                CompletableFuture.runAsync(() -> {
-                    TransactionResp resp = BeanUtil.copyProperties(transaction, TransactionResp.class);
-                    String result = HttpUtil.post(transaction.getBizCallbackUrl(), JSON.toJSONString(resp));
-                    log.info("支付通知=>回调通知业务结果：{}", result);
-                }, callbackNotifyExecutor);
             } finally {
                 lock.unlock();
             }
         }, callbackExecutor);
-
         return entrance.getDefaultCallbackData();
     }
 
     @Override
     public String refundNotify(String entranceFlag, HttpServletRequest request) {
-        log.info("退款通知：{}", entranceFlag);
         EntranceEntity entrance = entranceService.getOne(Wrappers.<EntranceEntity>lambdaQuery()
                 .eq(EntranceEntity::getEntranceFlag, entranceFlag));
         Assert.notNull(entrance, () -> new BizException("入口标识未知"));
 
         CompletableFuture.runAsync(() -> {
             RefundEntity parse = payService.parseRefundNotify(request, entranceFlag);
-            log.info("解析退款通知：{}", parse);
-
             String lockKey = StrUtil.format(RedisLockConst.REFUND_LOCK, parse.getRefundNo());
             RLock lock = redissonClient.getLock(lockKey);
             if (!lock.tryLock()) {
@@ -126,22 +114,16 @@ public class CallbackServiceImpl implements CallbackService {
                         .setFinishTime(parse.getFinishTime())
                         .setOutRefundNo(parse.getOutRefundNo());
                 refundService.updateById(refund);
-                log.info("退款已更新：{}", refund);
-
-                if (StrUtil.isEmpty(refund.getBizCallbackUrl())) {
-                    return;
+                if (StrUtil.isNotEmpty(refund.getBizCallbackUrl())) {
+                    CompletableFuture.runAsync(
+                            () -> HttpUtil.post(refund.getBizCallbackUrl(), JSON.toJSONString(BeanUtil.copyProperties(refund, RefundResp.class))),
+                            callbackNotifyExecutor
+                    );
                 }
-
-                CompletableFuture.runAsync(() -> {
-                    RefundResp resp = BeanUtil.copyProperties(refund, RefundResp.class);
-                    String result = HttpUtil.post(refund.getBizCallbackUrl(), JSON.toJSONString(resp));
-                    log.info("退款通知=>回调通知业务结果：{}", result);
-                }, callbackNotifyExecutor);
             } finally {
                 lock.unlock();
             }
         }, callbackExecutor);
-
         return entrance.getDefaultCallbackData();
     }
 }

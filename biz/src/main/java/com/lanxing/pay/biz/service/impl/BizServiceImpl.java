@@ -53,7 +53,6 @@ public class BizServiceImpl implements BizService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public PrepayResp prepay(PrepayReq req) {
-        log.info("预支付=>请求：{}", req);
         Assert.isTrue(LocalDateTime.now().isAfter(req.getExpireTime()), () -> new BizException("过期时间不能小于当前时间"));
 
         String lockKey = StrUtil.format(RedisLockConst.PREPAY_LOCK, req.getBizFlag(), req.getBizDataNo());
@@ -68,16 +67,12 @@ public class BizServiceImpl implements BizService {
                     .eq(TransactionEntity::getStatus, TransactionStatus.SUCCESS));
             Assert.isTrue(successCount == 0,
                     () -> new BizException("当前业务【{}:{}】已支付成功", req.getBizFlag(), req.getBizDataNo()));
-
             String transactionNo = IdUtil.generate("100");
             TransactionEntity transaction = BeanUtil.copyProperties(req, TransactionEntity.class)
                     .setTransactionNo(transactionNo)
                     .setStatus(TransactionStatus.NOT_PAY);
             transactionService.save(transaction);
-            log.info("预支付=>保存交易：{}", transaction);
-
             Object prepayInfo = payService.prepay(transaction);
-            log.info("预支付=>结果：{}", prepayInfo);
             return new PrepayResp().setTransactionNo(transactionNo).setPrepayInfo(prepayInfo);
         } finally {
             lock.unlock();
@@ -87,7 +82,6 @@ public class BizServiceImpl implements BizService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void closePay(String transactionNo) {
-        log.info("关闭支付=>请求：{}", transactionNo);
         String lockKey = StrUtil.format(RedisLockConst.TRANSACTION_LOCK, transactionNo);
         RLock lock = redissonClient.getLock(lockKey);
         Assert.isTrue(lock.tryLock(), () -> new BizException("交易【{}】正在执行其他操作", transactionNo));
@@ -98,13 +92,9 @@ public class BizServiceImpl implements BizService {
             Assert.notNull(transaction, () -> new BizException("交易不存在"));
             Assert.isTrue(TransactionStatus.NOT_PAY.equals(transaction.getStatus()),
                     () -> new BizException("交易【{}】已结束，无法关闭", transactionNo));
-
             transaction.setStatus(TransactionStatus.CLOSED);
             transactionService.updateById(transaction);
-            log.info("关闭支付=>更新交易：{}", transaction);
-
             payService.closePay(transaction);
-            log.info("关闭支付=>关闭操作已执行");
         } finally {
             lock.unlock();
         }
@@ -113,7 +103,6 @@ public class BizServiceImpl implements BizService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public TransactionResp queryPay(String transactionNo) {
-        log.info("查询支付=>请求：{}", transactionNo);
         String lockKey = StrUtil.format(RedisLockConst.TRANSACTION_LOCK, transactionNo);
         RLock lock = redissonClient.getLock(lockKey);
         Assert.isTrue(lock.tryLock(), () -> new BizException("交易【{}】正在执行其他操作", transactionNo));
@@ -122,15 +111,10 @@ public class BizServiceImpl implements BizService {
             TransactionEntity transaction = transactionService.getOne(Wrappers.<TransactionEntity>lambdaQuery()
                     .eq(TransactionEntity::getTransactionNo, transactionNo));
             Assert.notNull(transaction, () -> new BizException("交易不存在"));
-
             if (TransactionStatus.NOT_PAY.equals(transaction.getStatus()) && payService.queryPay(transaction)) {
                 transactionService.updateById(transaction);
-                log.info("查询支付=>更新交易：{}", transaction);
             }
-
-            TransactionResp resp = BeanUtil.copyProperties(transaction, TransactionResp.class);
-            log.info("查询支付=>结果：{}", resp);
-            return resp;
+            return BeanUtil.copyProperties(transaction, TransactionResp.class);
         } finally {
             lock.unlock();
         }
@@ -139,7 +123,6 @@ public class BizServiceImpl implements BizService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public String refund(RefundReq req) {
-        log.info("退款=>请求：{}", req);
         String lockKey = StrUtil.format(RedisLockConst.REFUND_REQUEST_LOCK, req.getTransactionNo());
         RLock lock = redissonClient.getLock(lockKey);
         Assert.isTrue(lock.tryLock(),
@@ -151,23 +134,18 @@ public class BizServiceImpl implements BizService {
             Assert.notNull(transaction, () -> new BizException("交易不存在"));
             Assert.isTrue(TransactionStatus.SUCCESS.equals(transaction.getStatus()),
                     () -> new BizException("交易【{}】未成功，无法退款", req.getTransactionNo()));
-
             long count = refundService.count(Wrappers.<RefundEntity>lambdaQuery()
                     .eq(RefundEntity::getBizFlag, req.getBizFlag())
                     .eq(RefundEntity::getBizDataNo, req.getBizDataNo())
                     .ne(RefundEntity::getStatus, RefundStatus.REFUND_FAIL));
             Assert.isTrue(count == 0, () -> new BizException("交易【{}】的退款业务【{}:{}】正在退款中或已退款成功",
                     req.getTransactionNo(), req.getBizFlag(), req.getBizDataNo()));
-
             String refundNo = IdUtil.generate("200");
             RefundEntity refund = BeanUtil.copyProperties(req, RefundEntity.class)
                     .setRefundNo(refundNo)
                     .setStatus(RefundStatus.REFUNDING);
             refundService.save(refund);
-            log.info("退款=>保存退款：{}", refund);
-
             payService.refund(transaction, refund);
-            log.info("退款=>退款操作已执行");
             return refundNo;
         } finally {
             lock.unlock();
@@ -177,7 +155,6 @@ public class BizServiceImpl implements BizService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public RefundResp queryRefund(String refundNo) {
-        log.info("查询退款=>请求：{}", refundNo);
         String lockKey = StrUtil.format(RedisLockConst.REFUND_LOCK, refundNo);
         RLock lock = redissonClient.getLock(lockKey);
         Assert.isTrue(lock.tryLock(), () -> new BizException("退款【{}】正在执行其他操作", refundNo));
@@ -188,15 +165,10 @@ public class BizServiceImpl implements BizService {
             Assert.notNull(refund, () -> new BizException("退款不存在"));
             TransactionEntity transaction = transactionService.getOne(Wrappers.<TransactionEntity>lambdaQuery()
                     .eq(TransactionEntity::getTransactionNo, refund.getTransactionNo()));
-
             if (RefundStatus.REFUNDING.equals(refund.getStatus()) && payService.queryRefund(transaction, refund)) {
                 refundService.updateById(refund);
-                log.info("查询退款=>更新退款：{}", refund);
             }
-
-            RefundResp resp = BeanUtil.copyProperties(refund, RefundResp.class);
-            log.info("查询退款=>结果：{}", resp);
-            return resp;
+            return BeanUtil.copyProperties(refund, RefundResp.class);
         } finally {
             lock.unlock();
         }
