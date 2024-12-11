@@ -1,4 +1,4 @@
-package com.lanxing.pay.biz.config;
+package com.lanxing.pay.biz.common.config;
 
 import com.lanxing.pay.biz.model.MyExecutor;
 import org.springframework.context.annotation.Bean;

@@ -7,7 +7,7 @@ import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.lanxing.pay.biz.constant.RedisLockConst;
-import com.lanxing.pay.biz.exception.BizException;
+import com.lanxing.pay.biz.common.exception.BizException;
 import com.lanxing.pay.biz.model.resp.RefundResp;
 import com.lanxing.pay.biz.model.resp.TransactionResp;
 import com.lanxing.pay.biz.service.CallbackService;

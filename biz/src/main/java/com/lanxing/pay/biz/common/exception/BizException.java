@@ -1,4 +1,4 @@
-package com.lanxing.pay.biz.exception;
+package com.lanxing.pay.biz.common.exception;
 
 import cn.hutool.core.util.StrUtil;
 

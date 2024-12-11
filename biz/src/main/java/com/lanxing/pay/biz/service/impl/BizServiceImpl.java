@@ -5,7 +5,7 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.lanxing.pay.biz.constant.RedisLockConst;
-import com.lanxing.pay.biz.exception.BizException;
+import com.lanxing.pay.biz.common.exception.BizException;
 import com.lanxing.pay.biz.model.req.PrepayReq;
 import com.lanxing.pay.biz.model.req.RefundReq;
 import com.lanxing.pay.biz.model.resp.PrepayResp;

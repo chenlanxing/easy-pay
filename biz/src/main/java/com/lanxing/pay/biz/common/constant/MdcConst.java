@@ -1,4 +1,4 @@
-package com.lanxing.pay.biz.constant;
+package com.lanxing.pay.biz.common.constant;
 
 /**
  * MDC常量

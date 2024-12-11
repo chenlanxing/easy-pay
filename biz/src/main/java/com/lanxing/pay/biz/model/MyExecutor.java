@@ -1,7 +1,7 @@
 package com.lanxing.pay.biz.model;
 
 import cn.hutool.core.util.RandomUtil;
-import com.lanxing.pay.biz.constant.MdcConst;
+import com.lanxing.pay.biz.common.constant.MdcConst;
 import org.slf4j.MDC;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 

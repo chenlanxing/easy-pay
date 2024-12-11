@@ -1,7 +1,7 @@
-package com.lanxing.pay.biz.exception;
+package com.lanxing.pay.biz.common.exception;
 
 import cn.hutool.core.exceptions.ExceptionUtil;
-import com.lanxing.pay.biz.constant.MdcConst;
+import com.lanxing.pay.biz.common.constant.MdcConst;
 import com.lanxing.pay.biz.model.APIResult;
 import com.lanxing.pay.core.PayException;
 import lombok.extern.slf4j.Slf4j;

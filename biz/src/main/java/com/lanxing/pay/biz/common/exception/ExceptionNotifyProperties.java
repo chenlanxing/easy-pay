@@ -1,4 +1,4 @@
-package com.lanxing.pay.biz.exception;
+package com.lanxing.pay.biz.common.exception;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
