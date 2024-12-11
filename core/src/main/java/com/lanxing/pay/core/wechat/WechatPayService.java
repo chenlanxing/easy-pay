@@ -48,10 +48,19 @@ public abstract class WechatPayService implements PayService {
         return wechatConfig;
     }
 
+    protected RequestParam getRequestParam(HttpServletRequest request) {
+        return new RequestParam.Builder()
+                .serialNumber(request.getHeader(Constant.WECHAT_PAY_SERIAL))
+                .signature(request.getHeader(Constant.WECHAT_PAY_SIGNATURE))
+                .timestamp(request.getHeader(Constant.WECHAT_PAY_TIMESTAMP))
+                .nonce(request.getHeader(Constant.WECHAT_PAY_NONCE))
+                .body(ServletUtil.getBody(request))
+                .build();
+    }
+
     @Override
     public void refund(TransactionEntity transaction, RefundEntity refund) {
         WechatConfigEntity wechatConfig = getWechatConfig(transaction.getEntranceFlag());
-
         AmountReq amountReq = new AmountReq();
         amountReq.setTotal(transaction.getAmount().multiply(BigDecimal.valueOf(100)).longValue());
         amountReq.setRefund(refund.getAmount().multiply(BigDecimal.valueOf(100)).longValue());
@@ -62,7 +71,6 @@ public abstract class WechatPayService implements PayService {
         request.setOutRefundNo(refund.getRefundNo());
         request.setNotifyUrl(NotifyUrl.getRefundNotifyUrl(transaction.getEntranceFlag()));
         request.setAmount(amountReq);
-
         RefundService refundService = new RefundService.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
         try {
             refundService.create(request);
@@ -74,11 +82,9 @@ public abstract class WechatPayService implements PayService {
     @Override
     public boolean queryRefund(TransactionEntity transaction, RefundEntity refund) {
         WechatConfigEntity wechatConfig = getWechatConfig(transaction.getEntranceFlag());
-
         QueryByOutRefundNoRequest request = new QueryByOutRefundNoRequest();
         request.setSubMchid(wechatConfig.getSubMchId());
         request.setOutRefundNo(refund.getRefundNo());
-
         RefundService refundService = new RefundService.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
         Refund refundResult;
         try {
@@ -101,15 +107,7 @@ public abstract class WechatPayService implements PayService {
     @Override
     public RefundEntity parseRefundNotify(HttpServletRequest request, String entranceFlag) {
         WechatConfigEntity wechatConfig = getWechatConfig(entranceFlag);
-
-        RequestParam requestParam = new RequestParam.Builder()
-                .serialNumber(request.getHeader(Constant.WECHAT_PAY_SERIAL))
-                .signature(request.getHeader(Constant.WECHAT_PAY_SIGNATURE))
-                .timestamp(request.getHeader(Constant.WECHAT_PAY_TIMESTAMP))
-                .nonce(request.getHeader(Constant.WECHAT_PAY_NONCE))
-                .body(ServletUtil.getBody(request))
-                .build();
-
+        RequestParam requestParam = getRequestParam(request);
         NotificationParser notificationParser = new NotificationParser(WechatPayFactory.getConfig(wechatConfig));
         RefundNotification refundNotification;
         try {
@@ -117,7 +115,6 @@ public abstract class WechatPayService implements PayService {
         } catch (Exception e) {
             throw new PayException("解析退款通知失败", e);
         }
-
         String status = RefundStatus.REFUNDING;
         LocalDateTime finishTime = null;
         if (Status.SUCCESS == refundNotification.getRefundStatus()) {
