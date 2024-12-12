@@ -7,26 +7,28 @@ import com.lanxing.pay.data.entity.WechatConfigEntity;
 import com.lanxing.pay.data.service.WechatConfigService;
 import com.lanxing.pay.data.service.WechatUserService;
 import com.wechat.pay.java.core.util.GsonUtil;
-import com.wechat.pay.java.service.payments.jsapi.JsapiServiceExtension;
-import com.wechat.pay.java.service.payments.jsapi.model.Amount;
-import com.wechat.pay.java.service.payments.jsapi.model.CloseOrderRequest;
-import com.wechat.pay.java.service.payments.jsapi.model.Payer;
-import com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest;
-import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPaymentResponse;
-import com.wechat.pay.java.service.payments.jsapi.model.QueryOrderByOutTradeNoRequest;
-import com.wechat.pay.java.service.payments.model.Transaction;
+import com.wechat.pay.java.service.partnerpayments.jsapi.JsapiServiceExtension;
+import com.wechat.pay.java.service.partnerpayments.jsapi.model.Amount;
+import com.wechat.pay.java.service.partnerpayments.jsapi.model.CloseOrderRequest;
+import com.wechat.pay.java.service.partnerpayments.jsapi.model.Payer;
+import com.wechat.pay.java.service.partnerpayments.jsapi.model.PrepayRequest;
+import com.wechat.pay.java.service.partnerpayments.jsapi.model.PrepayWithRequestPaymentResponse;
+import com.wechat.pay.java.service.partnerpayments.jsapi.model.QueryOrderByOutTradeNoRequest;
+import com.wechat.pay.java.service.partnerpayments.jsapi.model.Transaction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
- * 直连JSAPI支付
+ * 服务商JSAPI支付
  *
  * @author chenlanxing
  */
 @Slf4j
-@Service("wechatDirectJsapi")
-public class DirectJsapiPayService extends DirectWechatPayService {
+@Service("wechatPartnerJsapi")
+public class PartnerJsapiPayService extends PartnerWechatPayService {
 
     @Autowired
     private WechatUserService wechatUserService;
@@ -40,14 +42,14 @@ public class DirectJsapiPayService extends DirectWechatPayService {
     public Object prepay(TransactionEntity transaction) {
         WechatConfigEntity wechatConfig = getWechatConfig(transaction.getEntranceFlag());
         Payer payer = new Payer();
-        payer.setOpenid(getOpenId(wechatUserService, transaction, wechatConfig));
+        payer.setSpOpenid(getOpenId(wechatUserService, transaction, wechatConfig));
         PrepayRequest request = getPrepayRequest(transaction, wechatConfig, PrepayRequest.class);
         request.setAmount(getAmount(transaction, Amount.class));
         request.setPayer(payer);
         JsapiServiceExtension jsapiService = new JsapiServiceExtension.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
         PrepayWithRequestPaymentResponse response;
         try {
-            response = jsapiService.prepayWithRequestPayment(request);
+            response = jsapiService.prepayWithRequestPayment(request, wechatConfig.getAppId());
         } catch (Exception e) {
             throw new PayException("预支付失败", e);
         }
@@ -58,7 +60,8 @@ public class DirectJsapiPayService extends DirectWechatPayService {
     public void closePay(TransactionEntity transaction) {
         WechatConfigEntity wechatConfig = getWechatConfig(transaction.getEntranceFlag());
         CloseOrderRequest request = new CloseOrderRequest();
-        request.setMchid(wechatConfig.getMchId());
+        request.setSpMchid(wechatConfig.getMchId());
+        request.setSubMchid(wechatConfig.getSubMchId());
         request.setOutTradeNo(transaction.getTransactionNo());
         JsapiServiceExtension jsapiService = new JsapiServiceExtension.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
         try {
@@ -72,7 +75,8 @@ public class DirectJsapiPayService extends DirectWechatPayService {
     public boolean queryPay(TransactionEntity transaction) {
         WechatConfigEntity wechatConfig = getWechatConfig(transaction.getEntranceFlag());
         QueryOrderByOutTradeNoRequest request = new QueryOrderByOutTradeNoRequest();
-        request.setMchid(wechatConfig.getMchId());
+        request.setSpMchid(wechatConfig.getMchId());
+        request.setSubMchid(wechatConfig.getSubMchId());
         request.setOutTradeNo(transaction.getTransactionNo());
         JsapiServiceExtension jsapiService = new JsapiServiceExtension.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
         Transaction transactionResult;
@@ -81,6 +85,11 @@ public class DirectJsapiPayService extends DirectWechatPayService {
         } catch (Exception e) {
             throw new PayException("查询支付失败", e);
         }
-        return updateTransaction(transaction, transactionResult);
+        return updateTransaction(transaction, transactionResult, Transaction.class);
+    }
+
+    @Override
+    public TransactionEntity parsePayNotify(HttpServletRequest request, String entranceFlag) {
+        return parsePayNotify(request, entranceFlag, Transaction.class);
     }
 }

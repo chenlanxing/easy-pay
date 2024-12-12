@@ -12,7 +12,9 @@ import com.lanxing.pay.data.constant.TransactionStatus;
 import com.lanxing.pay.data.entity.RefundEntity;
 import com.lanxing.pay.data.entity.TransactionEntity;
 import com.lanxing.pay.data.entity.WechatConfigEntity;
+import com.lanxing.pay.data.entity.WechatUserEntity;
 import com.lanxing.pay.data.service.WechatConfigService;
+import com.lanxing.pay.data.service.WechatUserService;
 import com.wechat.pay.java.core.http.Constant;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
@@ -50,6 +52,14 @@ public abstract class WechatPayService implements PayService {
         return wechatConfig;
     }
 
+    protected String getOpenId(WechatUserService wechatUserService, TransactionEntity transaction, WechatConfigEntity wechatConfig) {
+        WechatUserEntity wechatUser = wechatUserService.getOne(Wrappers.<WechatUserEntity>lambdaQuery()
+                .eq(WechatUserEntity::getUserId, transaction.getUserId())
+                .eq(WechatUserEntity::getAppId, wechatConfig.getAppId()));
+        Assert.notNull(wechatConfig, () -> new PayException("微信用户不存在"));
+        return wechatUser.getOpenId();
+    }
+
     protected <T> T getAmount(TransactionEntity transaction, Class<T> clazz) {
         try {
             T amount = clazz.getDeclaredConstructor().newInstance();
@@ -58,6 +68,22 @@ public abstract class WechatPayService implements PayService {
             Method setCurrencyMethod = clazz.getMethod("setCurrency", String.class);
             setCurrencyMethod.invoke(amount, "CNY");
             return amount;
+        } catch (Exception e) {
+            throw new PayException(e);
+        }
+    }
+
+    protected <A, B> A getSceneInfo(TransactionEntity transaction, Class<A> aClass, Class<B> bClass) {
+        try {
+            B h5Info = bClass.getDeclaredConstructor().newInstance();
+            Method setTypeMethod = bClass.getMethod("setType", String.class);
+            setTypeMethod.invoke(h5Info, "Wap");
+            A sceneInfo = aClass.getDeclaredConstructor().newInstance();
+            Method setPayerClientIpMethod = bClass.getMethod("setPayerClientIp", String.class);
+            setPayerClientIpMethod.invoke(sceneInfo, transaction.getUserIp());
+            Method setH5InfoMethod = bClass.getMethod("setH5Info", bClass);
+            setH5InfoMethod.invoke(sceneInfo, h5Info);
+            return sceneInfo;
         } catch (Exception e) {
             throw new PayException(e);
         }

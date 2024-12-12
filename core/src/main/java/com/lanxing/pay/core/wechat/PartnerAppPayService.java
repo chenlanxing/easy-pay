@@ -2,7 +2,6 @@ package com.lanxing.pay.core.wechat;
 
 import com.alibaba.fastjson.JSON;
 import com.lanxing.pay.core.PayException;
-import com.lanxing.pay.data.constant.TransactionStatus;
 import com.lanxing.pay.data.entity.TransactionEntity;
 import com.lanxing.pay.data.entity.WechatConfigEntity;
 import com.lanxing.pay.data.service.WechatConfigService;

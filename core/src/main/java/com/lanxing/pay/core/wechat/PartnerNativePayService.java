@@ -4,27 +4,27 @@ import com.lanxing.pay.core.PayException;
 import com.lanxing.pay.data.entity.TransactionEntity;
 import com.lanxing.pay.data.entity.WechatConfigEntity;
 import com.lanxing.pay.data.service.WechatConfigService;
-import com.wechat.pay.java.service.payments.h5.H5Service;
-import com.wechat.pay.java.service.payments.h5.model.Amount;
-import com.wechat.pay.java.service.payments.h5.model.CloseOrderRequest;
-import com.wechat.pay.java.service.payments.h5.model.H5Info;
-import com.wechat.pay.java.service.payments.h5.model.PrepayRequest;
-import com.wechat.pay.java.service.payments.h5.model.PrepayResponse;
-import com.wechat.pay.java.service.payments.h5.model.QueryOrderByOutTradeNoRequest;
-import com.wechat.pay.java.service.payments.h5.model.SceneInfo;
-import com.wechat.pay.java.service.payments.model.Transaction;
+import com.wechat.pay.java.service.partnerpayments.nativepay.NativePayService;
+import com.wechat.pay.java.service.partnerpayments.nativepay.model.Amount;
+import com.wechat.pay.java.service.partnerpayments.nativepay.model.CloseOrderRequest;
+import com.wechat.pay.java.service.partnerpayments.nativepay.model.PrepayRequest;
+import com.wechat.pay.java.service.partnerpayments.nativepay.model.PrepayResponse;
+import com.wechat.pay.java.service.partnerpayments.nativepay.model.QueryOrderByOutTradeNoRequest;
+import com.wechat.pay.java.service.partnerpayments.nativepay.model.Transaction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
- * 直连H5支付
+ * 服务商Native支付
  *
  * @author chenlanxing
  */
 @Slf4j
-@Service("wechatDirectH5")
-public class DirectH5PayService extends DirectWechatPayService {
+@Service("wechatPartnerNative")
+public class PartnerNativePayService extends PartnerWechatPayService {
 
     @Autowired
     public void setWechatConfigService(WechatConfigService wechatConfigService) {
@@ -36,26 +36,26 @@ public class DirectH5PayService extends DirectWechatPayService {
         WechatConfigEntity wechatConfig = getWechatConfig(transaction.getEntranceFlag());
         PrepayRequest request = getPrepayRequest(transaction, wechatConfig, PrepayRequest.class);
         request.setAmount(getAmount(transaction, Amount.class));
-        request.setSceneInfo(getSceneInfo(transaction, SceneInfo.class, H5Info.class));
-        H5Service h5Service = new H5Service.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
+        NativePayService nativePayService = new NativePayService.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
         PrepayResponse response;
         try {
-            response = h5Service.prepay(request);
+            response = nativePayService.prepay(request);
         } catch (Exception e) {
             throw new PayException("预支付失败", e);
         }
-        return response.getH5Url();
+        return response.getCodeUrl();
     }
 
     @Override
     public void closePay(TransactionEntity transaction) {
         WechatConfigEntity wechatConfig = getWechatConfig(transaction.getEntranceFlag());
         CloseOrderRequest request = new CloseOrderRequest();
-        request.setMchid(wechatConfig.getMchId());
+        request.setSpMchid(wechatConfig.getMchId());
+        request.setSubMchid(wechatConfig.getSubMchId());
         request.setOutTradeNo(transaction.getTransactionNo());
-        H5Service h5Service = new H5Service.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
+        NativePayService nativePayService = new NativePayService.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
         try {
-            h5Service.closeOrder(request);
+            nativePayService.closeOrder(request);
         } catch (Exception e) {
             throw new PayException("关闭支付失败", e);
         }
@@ -65,15 +65,21 @@ public class DirectH5PayService extends DirectWechatPayService {
     public boolean queryPay(TransactionEntity transaction) {
         WechatConfigEntity wechatConfig = getWechatConfig(transaction.getEntranceFlag());
         QueryOrderByOutTradeNoRequest request = new QueryOrderByOutTradeNoRequest();
-        request.setMchid(wechatConfig.getMchId());
+        request.setSpMchid(wechatConfig.getMchId());
+        request.setSubMchid(wechatConfig.getSubMchId());
         request.setOutTradeNo(transaction.getTransactionNo());
-        H5Service h5Service = new H5Service.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
+        NativePayService nativePayService = new NativePayService.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
         Transaction transactionResult;
         try {
-            transactionResult = h5Service.queryOrderByOutTradeNo(request);
+            transactionResult = nativePayService.queryOrderByOutTradeNo(request);
         } catch (Exception e) {
             throw new PayException("查询支付失败", e);
         }
-        return updateTransaction(transaction, transactionResult);
+        return updateTransaction(transaction, transactionResult, Transaction.class);
+    }
+
+    @Override
+    public TransactionEntity parsePayNotify(HttpServletRequest request, String entranceFlag) {
+        return parsePayNotify(request, entranceFlag, Transaction.class);
     }
 }

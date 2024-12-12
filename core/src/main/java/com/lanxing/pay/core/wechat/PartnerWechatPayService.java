@@ -4,7 +4,6 @@ import com.lanxing.pay.core.PayException;
 import com.lanxing.pay.data.constant.TransactionStatus;
 import com.lanxing.pay.data.entity.TransactionEntity;
 import com.lanxing.pay.data.entity.WechatConfigEntity;
-import com.wechat.pay.java.service.payments.model.Transaction;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
