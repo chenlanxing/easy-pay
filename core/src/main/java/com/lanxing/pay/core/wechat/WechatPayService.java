@@ -8,6 +8,7 @@ import com.lanxing.pay.core.NotifyUrl;
 import com.lanxing.pay.core.PayException;
 import com.lanxing.pay.core.PayService;
 import com.lanxing.pay.data.constant.RefundStatus;
+import com.lanxing.pay.data.constant.TransactionStatus;
 import com.lanxing.pay.data.entity.RefundEntity;
 import com.lanxing.pay.data.entity.TransactionEntity;
 import com.lanxing.pay.data.entity.WechatConfigEntity;
@@ -25,6 +26,7 @@ import com.wechat.pay.java.service.refund.model.Status;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -56,6 +58,50 @@ public abstract class WechatPayService implements PayService {
                 .nonce(request.getHeader(Constant.WECHAT_PAY_NONCE))
                 .body(ServletUtil.getBody(request))
                 .build();
+    }
+
+    protected <T> TransactionEntity parsePayNotify(HttpServletRequest request, String entranceFlag, Class<T> clazz) {
+        WechatConfigEntity wechatConfig = getWechatConfig(entranceFlag);
+        RequestParam requestParam = getRequestParam(request);
+        NotificationParser notificationParser = new NotificationParser(WechatPayFactory.getConfig(wechatConfig));
+        T transaction;
+        try {
+            transaction = notificationParser.parse(requestParam, clazz);
+        } catch (Exception e) {
+            throw new PayException("解析支付通知失败", e);
+        }
+        String tradeStateStr;
+        String successTime;
+        String outTradeNo;
+        String transactionId;
+        try {
+            Method getTradeStateMethod = clazz.getMethod("getTradeState");
+            Object tradeState = getTradeStateMethod.invoke(transaction);
+            Class<?> tradeStateClass = tradeState.getClass();
+            Method nameMethod = tradeStateClass.getMethod("name");
+            tradeStateStr = (String) nameMethod.invoke(tradeState);
+            Method getSuccessTimeMethod = clazz.getMethod("getSuccessTime");
+            successTime = (String) getSuccessTimeMethod.invoke(transaction);
+            Method getOutTradeNoMethod = clazz.getMethod("getOutTradeNo");
+            outTradeNo = (String) getOutTradeNoMethod.invoke(transaction);
+            Method getTransactionIdMethod = clazz.getMethod("getTransactionId");
+            transactionId = (String) getTransactionIdMethod.invoke(transaction);
+        } catch (Exception e) {
+            throw new PayException(e);
+        }
+        String status = TransactionStatus.NOT_PAY;
+        LocalDateTime finishTime = null;
+        if ("SUCCESS".equals(tradeStateStr)) {
+            status = TransactionStatus.SUCCESS;
+            finishTime = LocalDateTime.parse(successTime, FORMATTER);
+        } else if ("CLOSED".equals(tradeStateStr)) {
+            status = TransactionStatus.CLOSED;
+        }
+        return new TransactionEntity()
+                .setTransactionNo(outTradeNo)
+                .setStatus(status)
+                .setOutTransactionNo(transactionId)
+                .setFinishTime(finishTime);
     }
 
     @Override
