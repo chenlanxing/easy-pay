@@ -50,26 +50,36 @@ public abstract class WechatPayService implements PayService {
         return wechatConfig;
     }
 
-    protected RequestParam getRequestParam(HttpServletRequest request) {
-        return new RequestParam.Builder()
-                .serialNumber(request.getHeader(Constant.WECHAT_PAY_SERIAL))
-                .signature(request.getHeader(Constant.WECHAT_PAY_SIGNATURE))
-                .timestamp(request.getHeader(Constant.WECHAT_PAY_TIMESTAMP))
-                .nonce(request.getHeader(Constant.WECHAT_PAY_NONCE))
-                .body(ServletUtil.getBody(request))
-                .build();
+    protected <T> T getAmount(TransactionEntity transaction, Class<T> clazz) {
+        try {
+            T amount = clazz.getDeclaredConstructor().newInstance();
+            Method setTotalMethod = clazz.getMethod("setTotal", Integer.class);
+            setTotalMethod.invoke(amount, transaction.getAmount().multiply(BigDecimal.valueOf(100)).intValue());
+            Method setCurrencyMethod = clazz.getMethod("setCurrency", String.class);
+            setCurrencyMethod.invoke(amount, "CNY");
+            return amount;
+        } catch (Exception e) {
+            throw new PayException(e);
+        }
     }
 
-    protected <T> TransactionEntity parsePayNotify(HttpServletRequest request, String entranceFlag, Class<T> clazz) {
-        WechatConfigEntity wechatConfig = getWechatConfig(entranceFlag);
-        RequestParam requestParam = getRequestParam(request);
-        NotificationParser notificationParser = new NotificationParser(WechatPayFactory.getConfig(wechatConfig));
-        T transaction;
+    protected <T> T getPrepayRequest(TransactionEntity transaction, Class<T> clazz, T request) {
         try {
-            transaction = notificationParser.parse(requestParam, clazz);
+            Method setOutTradeNoMethod = clazz.getMethod("setOutTradeNo", String.class);
+            setOutTradeNoMethod.invoke(request, transaction.getTransactionNo());
+            Method setDescriptionMethod = clazz.getMethod("setDescription", String.class);
+            setDescriptionMethod.invoke(request, transaction.getDescription());
+            Method setTimeExpireMethod = clazz.getMethod("setTimeExpire", String.class);
+            setTimeExpireMethod.invoke(request, transaction.getExpireTime().format(FORMATTER));
+            Method setNotifyUrlMethod = clazz.getMethod("setNotifyUrl", String.class);
+            setNotifyUrlMethod.invoke(request, NotifyUrl.getPayNotifyUrl(transaction.getEntranceFlag()));
+            return request;
         } catch (Exception e) {
-            throw new PayException("解析支付通知失败", e);
+            throw new PayException(e);
         }
+    }
+
+    protected <T> TransactionEntity getTransaction(T transaction, Class<T> clazz) {
         String tradeStateStr;
         String successTime;
         String outTradeNo;
@@ -102,6 +112,29 @@ public abstract class WechatPayService implements PayService {
                 .setStatus(status)
                 .setOutTransactionNo(transactionId)
                 .setFinishTime(finishTime);
+    }
+
+    protected RequestParam getRequestParam(HttpServletRequest request) {
+        return new RequestParam.Builder()
+                .serialNumber(request.getHeader(Constant.WECHAT_PAY_SERIAL))
+                .signature(request.getHeader(Constant.WECHAT_PAY_SIGNATURE))
+                .timestamp(request.getHeader(Constant.WECHAT_PAY_TIMESTAMP))
+                .nonce(request.getHeader(Constant.WECHAT_PAY_NONCE))
+                .body(ServletUtil.getBody(request))
+                .build();
+    }
+
+    protected <T> TransactionEntity parsePayNotify(HttpServletRequest request, String entranceFlag, Class<T> clazz) {
+        WechatConfigEntity wechatConfig = getWechatConfig(entranceFlag);
+        RequestParam requestParam = getRequestParam(request);
+        NotificationParser notificationParser = new NotificationParser(WechatPayFactory.getConfig(wechatConfig));
+        T transaction;
+        try {
+            transaction = notificationParser.parse(requestParam, clazz);
+        } catch (Exception e) {
+            throw new PayException("解析支付通知失败", e);
+        }
+        return getTransaction(transaction, clazz);
     }
 
     @Override

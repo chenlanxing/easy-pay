@@ -32,15 +32,14 @@ public class DirectNativePayService extends DirectWechatPayService {
     @Override
     public Object prepay(TransactionEntity transaction) {
         WechatConfigEntity wechatConfig = getWechatConfig(transaction.getEntranceFlag());
-        Amount amount = getAmount(transaction, Amount.class);
         PrepayRequest request = getPrepayRequest(transaction, wechatConfig, PrepayRequest.class);
-        request.setAmount(amount);
+        request.setAmount(getAmount(transaction, Amount.class));
         NativePayService nativePayService = new NativePayService.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
         PrepayResponse response;
         try {
             response = nativePayService.prepay(request);
         } catch (Exception e) {
-            throw new PayException("关闭支付失败", e);
+            throw new PayException("预支付失败", e);
         }
         return response.getCodeUrl();
     }

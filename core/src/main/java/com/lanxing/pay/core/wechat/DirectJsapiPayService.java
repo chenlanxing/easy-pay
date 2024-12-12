@@ -42,7 +42,6 @@ public class DirectJsapiPayService extends DirectWechatPayService {
     @Override
     public Object prepay(TransactionEntity transaction) {
         WechatConfigEntity wechatConfig = getWechatConfig(transaction.getEntranceFlag());
-        Amount amount = getAmount(transaction, Amount.class);
         WechatUserEntity wechatUser = wechatUserService.getOne(Wrappers.<WechatUserEntity>lambdaQuery()
                 .eq(WechatUserEntity::getUserId, transaction.getUserId())
                 .eq(WechatUserEntity::getAppId, wechatConfig.getAppId()));
@@ -50,14 +49,14 @@ public class DirectJsapiPayService extends DirectWechatPayService {
         Payer payer = new Payer();
         payer.setOpenid(wechatUser.getOpenId());
         PrepayRequest request = getPrepayRequest(transaction, wechatConfig, PrepayRequest.class);
-        request.setAmount(amount);
+        request.setAmount(getAmount(transaction, Amount.class));
         request.setPayer(payer);
         JsapiServiceExtension jsapiService = new JsapiServiceExtension.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
         PrepayWithRequestPaymentResponse response;
         try {
             response = jsapiService.prepayWithRequestPayment(request);
         } catch (Exception e) {
-            throw new PayException("关闭支付失败", e);
+            throw new PayException("预支付失败", e);
         }
         return JSON.parseObject(GsonUtil.toJson(response));
     }

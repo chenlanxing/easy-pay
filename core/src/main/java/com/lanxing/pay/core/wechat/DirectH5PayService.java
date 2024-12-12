@@ -34,21 +34,20 @@ public class DirectH5PayService extends DirectWechatPayService {
     @Override
     public Object prepay(TransactionEntity transaction) {
         WechatConfigEntity wechatConfig = getWechatConfig(transaction.getEntranceFlag());
-        Amount amount = getAmount(transaction, Amount.class);
         H5Info h5Info = new H5Info();
         h5Info.setType("Wap");
         SceneInfo sceneInfo = new SceneInfo();
         sceneInfo.setPayerClientIp(transaction.getUserIp());
         sceneInfo.setH5Info(h5Info);
         PrepayRequest request = getPrepayRequest(transaction, wechatConfig, PrepayRequest.class);
-        request.setAmount(amount);
+        request.setAmount(getAmount(transaction, Amount.class));
         request.setSceneInfo(sceneInfo);
         H5Service h5Service = new H5Service.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
         PrepayResponse response;
         try {
             response = h5Service.prepay(request);
         } catch (Exception e) {
-            throw new PayException("关闭支付失败", e);
+            throw new PayException("预支付失败", e);
         }
         return response.getH5Url();
     }
