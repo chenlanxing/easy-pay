@@ -74,6 +74,7 @@ CREATE TABLE `wechat_config`
     UNIQUE KEY (`entrance_flag`)
 ) COMMENT = '微信配置';
 
+DROP TABLE IF EXISTS `wechat_user`;
 CREATE TABLE `wechat_user`
 (
     `id`      BIGINT      NOT NULL AUTO_INCREMENT COMMENT 'ID',
@@ -83,3 +84,16 @@ CREATE TABLE `wechat_user`
     PRIMARY KEY (`id`),
     KEY (`user_id`)
 ) COMMENT = '微信用户';
+
+DROP TABLE IF EXISTS `alipay_config`;
+CREATE TABLE `alipay_config`
+(
+    `id`            BIGINT        NOT NULL AUTO_INCREMENT COMMENT 'ID',
+    `entrance_flag` VARCHAR(32)   NOT NULL COMMENT '入口标识',
+    `app_id`        VARCHAR(64)   NOT NULL COMMENT '应用ID',
+    `private_key`   VARCHAR(5000) NOT NULL COMMENT '私钥',
+    `public_key`    VARCHAR(5000) NOT NULL COMMENT '公钥',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY (`entrance_flag`)
+) COMMENT = '支付宝配置';
+
