@@ -1,7 +1,7 @@
 package com.lanxing.pay.data.mapper;
 
-import com.lanxing.pay.data.entity.EntranceEntity;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.lanxing.pay.data.entity.EntranceEntity;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

@@ -39,7 +39,7 @@ public class DirectAppPayService extends DirectWechatPayService {
         AppServiceExtension appService = new AppServiceExtension.Builder().config(WechatPayFactory.getConfig(wechatConfig)).build();
         PrepayWithRequestPaymentResponse response;
         try {
-             response = appService.prepayWithRequestPayment(request);
+            response = appService.prepayWithRequestPayment(request);
         } catch (Exception e) {
             throw new PayException("预支付失败", e);
         }

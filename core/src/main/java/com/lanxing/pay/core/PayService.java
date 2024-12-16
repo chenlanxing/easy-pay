@@ -14,6 +14,7 @@ public interface PayService {
 
     /**
      * 预支付
+     *
      * @param transaction .
      * @return .
      */
@@ -21,12 +22,14 @@ public interface PayService {
 
     /**
      * 关闭支付
+     *
      * @param transaction .
      */
     void closePay(TransactionEntity transaction);
 
     /**
      * 查询支付
+     *
      * @param transaction .
      * @return .
      */
@@ -34,7 +37,8 @@ public interface PayService {
 
     /**
      * 解析支付通知
-     * @param request .
+     *
+     * @param request      .
      * @param entranceFlag .
      * @return .
      */
@@ -42,22 +46,25 @@ public interface PayService {
 
     /**
      * 退款
+     *
      * @param transaction .
-     * @param refund .
+     * @param refund      .
      */
     void refund(TransactionEntity transaction, RefundEntity refund);
 
     /**
      * 查询退款
+     *
      * @param transaction .
-     * @param refund .
+     * @param refund      .
      * @return .
      */
     boolean queryRefund(TransactionEntity transaction, RefundEntity refund);
 
     /**
      * 解析退款通知
-     * @param request .
+     *
+     * @param request      .
      * @param entranceFlag .
      * @return .
      */

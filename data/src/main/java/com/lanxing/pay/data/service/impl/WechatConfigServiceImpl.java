@@ -1,9 +1,9 @@
 package com.lanxing.pay.data.service.impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanxing.pay.data.entity.WechatConfigEntity;
 import com.lanxing.pay.data.mapper.WechatConfigMapper;
 import com.lanxing.pay.data.service.WechatConfigService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
 /**

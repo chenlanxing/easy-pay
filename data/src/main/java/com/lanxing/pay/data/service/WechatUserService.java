@@ -1,7 +1,7 @@
 package com.lanxing.pay.data.service;
 
-import com.lanxing.pay.data.entity.WechatUserEntity;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanxing.pay.data.entity.WechatUserEntity;
 
 /**
  * 微信用户 Service
