@@ -19,6 +19,7 @@ public class AlipayConfigEntity {
     public static final String APP_ID = "app_id";
     public static final String PRIVATE_KEY = "private_key";
     public static final String PUBLIC_KEY = "public_key";
+    public static final String AUTH_TOKEN = "auth_token";
     /**
      * ID
      */
@@ -40,4 +41,8 @@ public class AlipayConfigEntity {
      * 公钥
      */
     private String publicKey;
+    /**
+     * 代调用授权Token
+     */
+    private String authToken;
 }

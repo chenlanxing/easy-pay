@@ -27,6 +27,7 @@
         <fastjson.version>2.0.52</fastjson.version>
         <freemarker.version>2.3.32</freemarker.version>
         <wechatpay.version>0.2.15</wechatpay.version>
+        <alipay.version>3.1.22.ALL</alipay.version>
     </properties>
 
     <dependencies>
@@ -100,6 +101,11 @@
             <groupId>com.github.wechatpay-apiv3</groupId>
             <artifactId>wechatpay-java</artifactId>
             <version>${wechatpay.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alipay.sdk</groupId>
+            <artifactId>alipay-sdk-java-v3</artifactId>
+            <version>${alipay.version}</version>
         </dependency>
     </dependencies>
 </project>

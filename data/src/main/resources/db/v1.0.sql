@@ -93,6 +93,7 @@ CREATE TABLE `alipay_config`
     `app_id`        VARCHAR(64)   NOT NULL COMMENT '应用ID',
     `private_key`   VARCHAR(5000) NOT NULL COMMENT '私钥',
     `public_key`    VARCHAR(5000) NOT NULL COMMENT '公钥',
+    `auth_token`    VARCHAR(64)   NULL COMMENT '代调用授权Token',
     PRIMARY KEY (`id`),
     UNIQUE KEY (`entrance_flag`)
 ) COMMENT = '支付宝配置';
