@@ -5,7 +5,6 @@ import com.lanxing.pay.core.PayException;
 import com.lanxing.pay.data.entity.TransactionEntity;
 import com.lanxing.pay.data.entity.WechatConfigEntity;
 import com.lanxing.pay.data.service.WechatConfigService;
-import com.lanxing.pay.data.service.WechatUserService;
 import com.wechat.pay.java.core.util.GsonUtil;
 import com.wechat.pay.java.service.payments.jsapi.JsapiServiceExtension;
 import com.wechat.pay.java.service.payments.jsapi.model.Amount;
@@ -29,9 +28,6 @@ import org.springframework.stereotype.Service;
 public class DirectJsapiPayService extends DirectWechatPayService {
 
     @Autowired
-    private WechatUserService wechatUserService;
-
-    @Autowired
     public void setWechatConfigService(WechatConfigService wechatConfigService) {
         this.wechatConfigService = wechatConfigService;
     }
@@ -40,7 +36,7 @@ public class DirectJsapiPayService extends DirectWechatPayService {
     public Object prepay(TransactionEntity transaction) {
         WechatConfigEntity wechatConfig = getWechatConfig(transaction.getEntranceFlag());
         Payer payer = new Payer();
-        payer.setOpenid(getOpenId(wechatUserService, transaction, wechatConfig));
+        payer.setOpenid(JSON.parseObject(transaction.getExtraParam()).getString("openId"));
         PrepayRequest request = getPrepayRequest(transaction, wechatConfig, PrepayRequest.class);
         request.setAmount(getAmount(transaction, Amount.class));
         request.setPayer(payer);

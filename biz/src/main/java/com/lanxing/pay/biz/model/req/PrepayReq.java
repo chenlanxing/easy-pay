@@ -50,7 +50,6 @@ public class PrepayReq {
     /**
      * 用户IP
      */
-    @NotBlank(message = "用户IP不能为空")
     private String userIp;
 
     /**

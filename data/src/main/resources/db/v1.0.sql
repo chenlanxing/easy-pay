@@ -24,7 +24,7 @@ CREATE TABLE `transaction`
     `finish_time`        DATETIME(3)     NULL COMMENT '完成时间',
     `out_transaction_no` VARCHAR(64)     NULL COMMENT '外部交易编号',
     `user_id`            VARCHAR(32)     NULL COMMENT '用户ID',
-    `user_ip`            VARCHAR(32)     NOT NULL COMMENT '用户IP',
+    `user_ip`            VARCHAR(32)     NULL COMMENT '用户IP',
     `biz_flag`           VARCHAR(32)     NOT NULL COMMENT '业务标识',
     `biz_data_no`        VARCHAR(32)     NOT NULL COMMENT '业务数据编号',
     `biz_attach`         VARCHAR(1000)   NULL COMMENT '业务附加信息',
@@ -75,17 +75,6 @@ CREATE TABLE `wechat_config`
     PRIMARY KEY (`id`),
     UNIQUE KEY (`entrance_flag`)
 ) COMMENT = '微信配置';
-
-DROP TABLE IF EXISTS `wechat_user`;
-CREATE TABLE `wechat_user`
-(
-    `id`      BIGINT      NOT NULL AUTO_INCREMENT COMMENT 'ID',
-    `user_id` VARCHAR(32) NULL COMMENT '用户ID',
-    `app_id`  VARCHAR(64) NOT NULL COMMENT '应用ID',
-    `open_id` VARCHAR(64) NOT NULL COMMENT 'OpenID',
-    PRIMARY KEY (`id`),
-    KEY (`user_id`)
-) COMMENT = '微信用户';
 
 DROP TABLE IF EXISTS `alipay_config`;
 CREATE TABLE `alipay_config`

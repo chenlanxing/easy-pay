@@ -3,6 +3,7 @@ package com.lanxing.pay.biz.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.lanxing.pay.biz.common.exception.BizException;
 import com.lanxing.pay.biz.constant.RedisLockConst;
@@ -70,7 +71,8 @@ public class BizServiceImpl implements BizService {
             String transactionNo = IdUtil.generate("100");
             TransactionEntity transaction = BeanUtil.copyProperties(req, TransactionEntity.class)
                     .setTransactionNo(transactionNo)
-                    .setStatus(TransactionStatus.NOT_PAY);
+                    .setStatus(TransactionStatus.NOT_PAY)
+                    .setExtraParam(new JSONObject(req.getExtraParams()).toJSONString());
             transactionService.save(transaction);
             Object prepayInfo = payService.prepay(transaction);
             return new PrepayResp().setTransactionNo(transactionNo).setPrepayInfo(prepayInfo);
@@ -143,7 +145,8 @@ public class BizServiceImpl implements BizService {
             String refundNo = IdUtil.generate("200");
             RefundEntity refund = BeanUtil.copyProperties(req, RefundEntity.class)
                     .setRefundNo(refundNo)
-                    .setStatus(RefundStatus.REFUNDING);
+                    .setStatus(RefundStatus.REFUNDING)
+                    .setExtraParam(new JSONObject(req.getExtraParams()).toJSONString());
             refundService.save(refund);
             payService.refund(transaction, refund);
             return refundNo;

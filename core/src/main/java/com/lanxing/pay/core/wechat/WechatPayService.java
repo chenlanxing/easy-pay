@@ -12,9 +12,7 @@ import com.lanxing.pay.data.constant.TransactionStatus;
 import com.lanxing.pay.data.entity.RefundEntity;
 import com.lanxing.pay.data.entity.TransactionEntity;
 import com.lanxing.pay.data.entity.WechatConfigEntity;
-import com.lanxing.pay.data.entity.WechatUserEntity;
 import com.lanxing.pay.data.service.WechatConfigService;
-import com.lanxing.pay.data.service.WechatUserService;
 import com.wechat.pay.java.core.http.Constant;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
@@ -51,14 +49,6 @@ public abstract class WechatPayService implements PayService {
                 .eq(WechatConfigEntity::getEntranceFlag, entranceFlag));
         Assert.notNull(wechatConfig, () -> new PayException("微信配置不存在"));
         return wechatConfig;
-    }
-
-    protected String getOpenId(WechatUserService wechatUserService, TransactionEntity transaction, WechatConfigEntity wechatConfig) {
-        WechatUserEntity wechatUser = wechatUserService.getOne(Wrappers.<WechatUserEntity>lambdaQuery()
-                .eq(WechatUserEntity::getUserId, transaction.getUserId())
-                .eq(WechatUserEntity::getAppId, wechatConfig.getAppId()));
-        Assert.notNull(wechatConfig, () -> new PayException("微信用户不存在"));
-        return wechatUser.getOpenId();
     }
 
     protected <T> T getAmount(TransactionEntity transaction, Class<T> clazz) {
