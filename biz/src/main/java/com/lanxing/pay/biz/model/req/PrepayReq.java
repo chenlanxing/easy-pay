@@ -7,6 +7,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * 预支付请求
@@ -73,4 +74,9 @@ public class PrepayReq {
      * 业务回调地址
      */
     private String bizCallbackUrl;
+
+    /**
+     * 额外参数
+     */
+    private Map<String, Object> extraParams;
 }

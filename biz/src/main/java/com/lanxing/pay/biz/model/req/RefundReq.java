@@ -6,6 +6,7 @@ import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.util.Map;
 
 /**
  * 退款请求
@@ -55,4 +56,9 @@ public class RefundReq {
      * 业务回调地址
      */
     private String bizCallbackUrl;
+
+    /**
+     * 额外参数
+     */
+    private Map<String, Object> extraParams;
 }

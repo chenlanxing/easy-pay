@@ -108,4 +108,8 @@ public class TransactionEntity {
      * 业务回调地址
      */
     private String bizCallbackUrl;
+    /**
+     * 额外参数
+     */
+    private String extraParam;
 }
