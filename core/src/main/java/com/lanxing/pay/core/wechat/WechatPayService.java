@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -64,7 +65,7 @@ public abstract class WechatPayService implements PayService {
         try {
             T amount = clazz.getDeclaredConstructor().newInstance();
             Method setTotalMethod = clazz.getMethod("setTotal", Integer.class);
-            setTotalMethod.invoke(amount, transaction.getAmount().multiply(BigDecimal.valueOf(100)).intValue());
+            setTotalMethod.invoke(amount, transaction.getAmount().setScale(2, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100)).intValue());
             Method setCurrencyMethod = clazz.getMethod("setCurrency", String.class);
             setCurrencyMethod.invoke(amount, "CNY");
             return amount;
@@ -167,8 +168,8 @@ public abstract class WechatPayService implements PayService {
     public void refund(TransactionEntity transaction, RefundEntity refund) {
         WechatConfigEntity wechatConfig = getWechatConfig(transaction.getEntranceFlag());
         AmountReq amountReq = new AmountReq();
-        amountReq.setTotal(transaction.getAmount().multiply(BigDecimal.valueOf(100)).longValue());
-        amountReq.setRefund(refund.getAmount().multiply(BigDecimal.valueOf(100)).longValue());
+        amountReq.setTotal(transaction.getAmount().setScale(2, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100)).longValue());
+        amountReq.setRefund(refund.getAmount().setScale(2, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100)).longValue());
         amountReq.setCurrency("CNY");
         CreateRequest request = new CreateRequest();
         request.setSubMchid(wechatConfig.getSubMchId());

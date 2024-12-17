@@ -3,7 +3,6 @@ package com.lanxing.pay.core.alipay;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.alipay.v3.ApiException;
 import com.alipay.v3.api.AlipayTradeApi;
 import com.alipay.v3.api.AlipayTradeFastpayRefundApi;
 import com.alipay.v3.model.AlipayTradeCloseModel;
@@ -25,6 +24,7 @@ import com.lanxing.pay.data.service.AlipayConfigService;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -48,7 +48,6 @@ public abstract class AlipayPayService implements PayService {
         Assert.notNull(alipayConfig, () -> new PayException("支付宝配置不存在"));
         return alipayConfig;
     }
-
 
     @Override
     public void closePay(TransactionEntity transaction) {
@@ -103,7 +102,7 @@ public abstract class AlipayPayService implements PayService {
         AlipayTradeRefundModel model = new AlipayTradeRefundModel();
         model.setOutTradeNo(transaction.getTransactionNo());
         model.setOutRequestNo(refund.getRefundNo());
-        model.setRefundAmount(refund.getAmount().toString());
+        model.setRefundAmount(refund.getAmount().setScale(2, RoundingMode.HALF_UP).toString());
         model.setRefundReason(refund.getDescription());
         CustomizedParams params = null;
         if (StrUtil.isNotEmpty(alipayConfig.getAuthToken())) {
@@ -112,7 +111,7 @@ public abstract class AlipayPayService implements PayService {
         }
         try {
             new AlipayTradeApi(AlipayPayFactory.getClient(alipayConfig)).refund(model, params);
-        } catch (ApiException e) {
+        } catch (Exception e) {
             throw new PayException("退款失败", e);
         }
     }
@@ -132,7 +131,7 @@ public abstract class AlipayPayService implements PayService {
         AlipayTradeFastpayRefundQueryResponseModel response;
         try {
             response = new AlipayTradeFastpayRefundApi(AlipayPayFactory.getClient(alipayConfig)).query(model, params);
-        } catch (ApiException e) {
+        } catch (Exception e) {
             throw new PayException("查询退款失败", e);
         }
         refund.setOutRefundNo(response.getOutRequestNo());
