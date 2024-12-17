@@ -13,6 +13,7 @@ import com.alipay.v3.model.AlipayTradeQueryResponseModel;
 import com.alipay.v3.model.AlipayTradeRefundModel;
 import com.alipay.v3.util.model.CustomizedParams;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.lanxing.pay.core.NotifyUrl;
 import com.lanxing.pay.core.PayException;
 import com.lanxing.pay.core.PayService;
 import com.lanxing.pay.data.constant.RefundStatus;
@@ -27,7 +28,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -47,6 +50,17 @@ public abstract class AlipayPayService implements PayService {
                 .eq(AlipayConfigEntity::getEntranceFlag, entranceFlag));
         Assert.notNull(alipayConfig, () -> new PayException("支付宝配置不存在"));
         return alipayConfig;
+    }
+
+    protected Map<String, Object> getBizParams(TransactionEntity transaction, Map<String, Object> bizContent) {
+        bizContent.put("out_trade_no", transaction.getTransactionNo());
+        bizContent.put("total_amount", transaction.getAmount().setScale(2, RoundingMode.HALF_UP).toString());
+        bizContent.put("subject", transaction.getDescription());
+        bizContent.put("time_expire", transaction.getExpireTime().format(FORMATTER));
+        bizContent.put("notify_url", NotifyUrl.getPayNotifyUrl(transaction.getEntranceFlag()));
+        Map<String, Object> bizParams = new HashMap<>();
+        bizParams.put("biz_content", bizContent);
+        return bizParams;
     }
 
     @Override
